@@ -1,0 +1,233 @@
+{
+  "entities": {
+    "PlayerProfile": {
+      "title": "PlayerProfile",
+      "description": "Cross-platform cloud save profile for player progression, wardrobe cosmetics, skills, and daily streaks.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the player.",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Player display name.",
+          "maxLength": 48
+        },
+        "challengeCurrency": {
+          "type": "integer",
+          "description": "Prism Shards earned from daily challenges and login rewards for cosmetic customization."
+        },
+        "starCoins": {
+          "type": "integer",
+          "description": "Starlight Coins earned in combat for skill upgrades."
+        },
+        "unlockedZone": {
+          "type": "integer",
+          "description": "Highest unlocked zone (1 to 5)."
+        },
+        "unlockedSkills": {
+          "type": "array",
+          "description": "Stage-completion special skills unlocked."
+        },
+        "unlockedCosmetics": {
+          "type": "array",
+          "description": "Cosmetic items unlocked with challenge currency."
+        },
+        "equippedWeapon": {
+          "type": "string",
+          "enum": ["sword", "gun", "staff"]
+        },
+        "equippedOutfit": {
+          "type": "string",
+          "maxLength": 48
+        },
+        "equippedGlasses": {
+          "type": "string",
+          "maxLength": 48
+        },
+        "equippedHair": {
+          "type": "string",
+          "maxLength": 48
+        },
+        "equippedAura": {
+          "type": "string",
+          "maxLength": 48
+        },
+        "vitalityLevel": {
+          "type": "integer"
+        },
+        "powerLevel": {
+          "type": "integer"
+        },
+        "gravMasteryLevel": {
+          "type": "integer"
+        },
+        "dailyStreak": {
+          "type": "integer"
+        },
+        "lastDailyClaimDate": {
+          "type": "string",
+          "maxLength": 16
+        },
+        "completedDailyChallenges": {
+          "type": "array"
+        },
+        "highScore": {
+          "type": "integer"
+        },
+        "infiniteLife": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "challengeCurrency",
+        "starCoins",
+        "unlockedZone",
+        "unlockedSkills",
+        "unlockedCosmetics",
+        "equippedWeapon",
+        "equippedOutfit",
+        "equippedGlasses",
+        "equippedHair",
+        "equippedAura",
+        "vitalityLevel",
+        "powerLevel",
+        "gravMasteryLevel",
+        "dailyStreak",
+        "lastDailyClaimDate",
+        "completedDailyChallenges",
+        "highScore",
+        "infiniteLife",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Public competitive high-score entry for the global leaderboard.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "playerName": {
+          "type": "string",
+          "maxLength": 48
+        },
+        "score": {
+          "type": "integer"
+        },
+        "zoneReached": {
+          "type": "integer"
+        },
+        "weapon": {
+          "type": "string",
+          "enum": ["sword", "gun", "staff"]
+        },
+        "outfitId": {
+          "type": "string",
+          "maxLength": 48
+        },
+        "difficultyPeak": {
+          "type": "number"
+        },
+        "isPublic": {
+          "type": "boolean"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "playerName",
+        "score",
+        "zoneReached",
+        "weapon",
+        "outfitId",
+        "difficultyPeak",
+        "isPublic",
+        "updatedAt"
+      ]
+    },
+    "GameFeedback": {
+      "title": "GameFeedback",
+      "description": "Player feedback and improvement suggestions for JMC Labs.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": {
+          "type": "string",
+          "maxLength": 48
+        },
+        "category": {
+          "type": "string",
+          "enum": ["Gameplay", "Zones & Bosses", "Weapons & Skills", "Audio & Controls", "Bug Report"]
+        },
+        "rating": {
+          "type": "integer"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "isPublic": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "authorName",
+        "category",
+        "rating",
+        "message",
+        "isPublic",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/players/{playerId}": {
+      "schema": {
+        "$ref": "#/entities/PlayerProfile"
+      },
+      "description": "Private owner-scoped player progression and customization profile."
+    },
+    "/leaderboard/{entryId}": {
+      "schema": {
+        "$ref": "#/entities/LeaderboardEntry"
+      },
+      "description": "Global competitive leaderboard entries, one verified best entry per player."
+    },
+    "/feedback/{feedbackId}": {
+      "schema": {
+        "$ref": "#/entities/GameFeedback"
+      },
+      "description": "Community comments and improvement suggestions for JMC Labs."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Aether Shift: Gravity Odyssey",
+  "description": "A gravity-shifting galactic action platformer with seamless mid-air gravity controls, weapon combos, colossal bosses, customizable avatars, daily challenges, offline play, and global leaderboards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

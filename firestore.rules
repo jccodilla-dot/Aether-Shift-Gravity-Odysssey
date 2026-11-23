@@ -1,0 +1,176 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isVerifiedUser() && request.auth.uid == userId;
+    }
+
+    function isValidWeapon(w) {
+      return w is string && w in ['sword', 'gun', 'staff'];
+    }
+
+    function isBoundedStringArray(arr, maxLen) {
+      return arr is list && arr.size() <= maxLen && (arr.size() == 0 || (arr[0] is string && arr[0].size() <= 64));
+    }
+
+    function isValidPlayerProfile(data) {
+      return data.keys().hasAll([
+          'uid', 'displayName', 'challengeCurrency', 'starCoins',
+          'unlockedZone', 'unlockedSkills', 'unlockedCosmetics',
+          'equippedWeapon', 'equippedOutfit', 'equippedGlasses',
+          'equippedHair', 'equippedAura', 'vitalityLevel', 'powerLevel',
+          'gravMasteryLevel', 'dailyStreak', 'lastDailyClaimDate',
+          'completedDailyChallenges', 'highScore', 'infiniteLife',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'displayName', 'challengeCurrency', 'starCoins',
+          'unlockedZone', 'unlockedSkills', 'unlockedCosmetics',
+          'equippedWeapon', 'equippedOutfit', 'equippedGlasses',
+          'equippedHair', 'equippedAura', 'vitalityLevel', 'powerLevel',
+          'gravMasteryLevel', 'dailyStreak', 'lastDailyClaimDate',
+          'completedDailyChallenges', 'highScore', 'infiniteLife',
+          'createdAt', 'updatedAt'
+        ])
+        && data.uid is string && data.uid == request.auth.uid && isValidId(data.uid)
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 48
+        && data.challengeCurrency is int && data.challengeCurrency >= 0 && data.challengeCurrency <= 10000000
+        && data.starCoins is int && data.starCoins >= 0 && data.starCoins <= 10000000
+        && data.unlockedZone is int && data.unlockedZone >= 1 && data.unlockedZone <= 5
+        && isBoundedStringArray(data.unlockedSkills, 10)
+        && isBoundedStringArray(data.unlockedCosmetics, 40)
+        && isValidWeapon(data.equippedWeapon)
+        && data.equippedOutfit is string && data.equippedOutfit.size() >= 1 && data.equippedOutfit.size() <= 48
+        && data.equippedGlasses is string && data.equippedGlasses.size() >= 1 && data.equippedGlasses.size() <= 48
+        && data.equippedHair is string && data.equippedHair.size() >= 1 && data.equippedHair.size() <= 48
+        && data.equippedAura is string && data.equippedAura.size() >= 1 && data.equippedAura.size() <= 48
+        && data.vitalityLevel is int && data.vitalityLevel >= 1 && data.vitalityLevel <= 10
+        && data.powerLevel is int && data.powerLevel >= 1 && data.powerLevel <= 10
+        && data.gravMasteryLevel is int && data.gravMasteryLevel >= 1 && data.gravMasteryLevel <= 10
+        && data.dailyStreak is int && data.dailyStreak >= 0 && data.dailyStreak <= 3650
+        && data.lastDailyClaimDate is string && data.lastDailyClaimDate.size() <= 16
+        && isBoundedStringArray(data.completedDailyChallenges, 30)
+        && data.highScore is int && data.highScore >= 0 && data.highScore <= 999999999
+        && data.infiniteLife is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidLeaderboardEntry(data) {
+      return data.keys().hasAll([
+          'uid', 'playerName', 'score', 'zoneReached', 'weapon',
+          'outfitId', 'difficultyPeak', 'isPublic', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'playerName', 'score', 'zoneReached', 'weapon',
+          'outfitId', 'difficultyPeak', 'isPublic', 'updatedAt'
+        ])
+        && data.uid is string && data.uid == request.auth.uid && isValidId(data.uid)
+        && data.playerName is string && data.playerName.size() >= 1 && data.playerName.size() <= 48
+        && data.score is int && data.score >= 0 && data.score <= 999999999
+        && data.zoneReached is int && data.zoneReached >= 1 && data.zoneReached <= 5
+        && isValidWeapon(data.weapon)
+        && data.outfitId is string && data.outfitId.size() >= 1 && data.outfitId.size() <= 48
+        && data.difficultyPeak is number && data.difficultyPeak >= 1.0 && data.difficultyPeak <= 5.0
+        && data.isPublic == true
+        && data.updatedAt is timestamp;
+    }
+
+    match /players/{playerId} {
+      allow get: if isValidId(playerId) && isOwner(playerId);
+      allow list: if false;
+      allow create: if isValidId(playerId)
+        && isOwner(playerId)
+        && isValidPlayerProfile(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(playerId)
+        && isOwner(playerId)
+        && isValidPlayerProfile(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'displayName', 'challengeCurrency', 'starCoins',
+          'unlockedZone', 'unlockedSkills', 'unlockedCosmetics',
+          'equippedWeapon', 'equippedOutfit', 'equippedGlasses',
+          'equippedHair', 'equippedAura', 'vitalityLevel', 'powerLevel',
+          'gravMasteryLevel', 'dailyStreak', 'lastDailyClaimDate',
+          'completedDailyChallenges', 'highScore', 'infiniteLife',
+          'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    match /leaderboard/{entryId} {
+      allow get: if isValidId(entryId) && existing().isPublic == true;
+      allow list: if existing().isPublic == true;
+      allow create: if isValidId(entryId)
+        && isOwner(entryId)
+        && isValidLeaderboardEntry(incoming())
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(entryId)
+        && isOwner(entryId)
+        && isValidLeaderboardEntry(incoming())
+        && incoming().uid == existing().uid
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'playerName', 'score', 'zoneReached', 'weapon',
+          'outfitId', 'difficultyPeak', 'isPublic', 'updatedAt'
+        ]);
+      allow delete: if isValidId(entryId) && isOwner(entryId);
+    }
+
+    function isValidFeedback(data) {
+      return data.keys().hasAll([
+          'uid', 'authorName', 'category', 'rating', 'message', 'isPublic', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'authorName', 'category', 'rating', 'message', 'isPublic', 'createdAt'
+        ])
+        && data.uid is string && data.uid == request.auth.uid && isValidId(data.uid)
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 48
+        && data.category is string && data.category in ['Gameplay', 'Zones & Bosses', 'Weapons & Skills', 'Audio & Controls', 'Bug Report']
+        && data.rating is int && data.rating >= 1 && data.rating <= 5
+        && data.message is string && data.message.size() >= 3 && data.message.size() <= 500
+        && data.isPublic == true
+        && data.createdAt is timestamp;
+    }
+
+    match /feedback/{feedbackId} {
+      allow get: if isValidId(feedbackId) && existing().isPublic == true;
+      allow list: if existing().isPublic == true;
+      allow create: if isValidId(feedbackId)
+        && isVerifiedUser()
+        && isValidFeedback(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isValidId(feedbackId) && isVerifiedUser() && existing().uid == request.auth.uid;
+    }
+  }
+}
