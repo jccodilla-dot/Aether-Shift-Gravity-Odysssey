@@ -8,10 +8,13 @@ import {
   Heart,
   Infinity as InfinityIcon,
   LogOut,
+  Maximize2,
+  Minimize2,
   Music,
   Pause,
   Play,
   RotateCcw,
+  RotateCw,
   Share2,
   Shirt,
   Sparkles,
@@ -98,6 +101,12 @@ export default function App() {
 
   const [sfxOn, setSfxOn] = useState(gameAudio.sfxEnabled);
   const [musicOn, setMusicOn] = useState(gameAudio.musicEnabled);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isPortraitMobile, setIsPortraitMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerHeight > window.innerWidth && window.innerWidth < 768;
+  });
+  const [portraitDismissed, setPortraitDismissed] = useState(false);
 
   const gameCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const titleBgCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -374,11 +383,50 @@ export default function App() {
     updateProfile({ ...profile, infiniteLife: !profile.infiniteLife });
   };
 
+  useEffect(() => {
+    const syncOrientationAndFs = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+      const portrait = window.innerHeight > window.innerWidth && window.innerWidth < 768;
+      setIsPortraitMobile(portrait);
+      if (!portrait) {
+        setPortraitDismissed(false);
+      }
+    };
+    syncOrientationAndFs();
+    window.addEventListener('resize', syncOrientationAndFs);
+    window.addEventListener('orientationchange', syncOrientationAndFs);
+    document.addEventListener('fullscreenchange', syncOrientationAndFs);
+    return () => {
+      window.removeEventListener('resize', syncOrientationAndFs);
+      window.removeEventListener('orientationchange', syncOrientationAndFs);
+      document.removeEventListener('fullscreenchange', syncOrientationAndFs);
+    };
+  }, []);
+
+  const toggleLandscapeFullscreen = useCallback(async () => {
+    gameAudio.playUiClick();
+    const orientationApi = window.screen.orientation as ScreenOrientation & {
+      lock?: (orientation: string) => Promise<void>;
+      unlock?: () => void;
+    };
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen?.();
+        await orientationApi?.lock?.('landscape').catch(() => {});
+      } else {
+        orientationApi?.unlock?.();
+        await document.exitFullscreen?.();
+      }
+    } catch {
+      // Fullscreen/orientation lock can be blocked inside embedded frames
+    }
+  }, []);
+
   const todayChallenges = useMemo(() => getDailyChallengesForDate(getTodayDateKey()), []);
   const dailyAvailable = profile.lastDailyClaimDate !== getTodayDateKey();
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-[#070B19] text-slate-100">
+    <div className="relative h-[100dvh] w-[100dvw] overflow-hidden bg-[#070B19] text-slate-100">
       {/* ==================== TITLE SCREEN ==================== */}
       {screen === 'TITLE' && (
         <div className="relative flex h-full w-full flex-col justify-between overflow-y-auto">
@@ -389,8 +437,8 @@ export default function App() {
           <div className="pointer-events-none fixed inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/45 to-slate-950/90" />
 
           {/* Top Compact Utility Strip */}
-          <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-5 pt-4 sm:px-8">
-            <div className="flex items-center gap-3 text-xs text-slate-300">
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 px-4 pt-2.5 sm:px-8 sm:pt-4 safe-area-hud">
+            <div className="flex items-center gap-2.5 text-[11px] sm:text-xs text-slate-300">
               <span className="flex items-center gap-1.5 font-medium">
                 {isOnline ? (
                   <Cloud className="h-3.5 w-3.5 text-emerald-400" />
@@ -405,8 +453,17 @@ export default function App() {
               <span>Coins: <strong className="font-mono-num text-amber-400">{profile.starCoins}</strong></span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <PWAInstallButton />
+              <button
+                type="button"
+                onClick={toggleLandscapeFullscreen}
+                aria-label="Toggle Landscape HD Fullscreen"
+                className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900/80 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-slate-800"
+              >
+                {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+                <span className="hidden md:inline">{isFullscreen ? 'Exit Full' : 'HD Fullscreen'}</span>
+              </button>
               <button
                 type="button"
                 onClick={toggleSfx}
@@ -452,10 +509,10 @@ export default function App() {
           </div>
 
           {/* Main Hero Staging */}
-          <div className="relative z-10 mx-auto my-auto grid w-full max-w-6xl items-center gap-6 px-5 py-4 lg:grid-cols-[1.25fr_0.85fr] sm:px-8">
-            <div className="space-y-5">
+          <div className="relative z-10 mx-auto my-auto grid w-full max-w-6xl items-center gap-3 sm:gap-5 px-4 py-2 sm:grid-cols-[1.25fr_0.85fr] sm:px-8 sm:py-3">
+            <div className="space-y-2.5 sm:space-y-4">
               {friendChallenge && (
-                <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-4 py-2.5 text-xs text-amber-200">
+                <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs text-amber-200">
                   Friend Challenge from <strong>{friendChallenge.playerName}</strong> · Beat{' '}
                   <strong className="font-mono-num">{friendChallenge.targetScore.toLocaleString()}</strong> in Zone{' '}
                   {friendChallenge.zoneId}
@@ -464,7 +521,7 @@ export default function App() {
 
               {/* Bespoke Inline SVG Title Lockup */}
               <div>
-                <svg viewBox="0 0 520 96" className="h-16 w-auto max-w-full sm:h-20" role="img" aria-label="Aether Shift">
+                <svg viewBox="0 0 520 96" className="h-10 w-auto max-w-full sm:h-14 lg:h-20" role="img" aria-label="Aether Shift">
                   <defs>
                     <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#F8FAFC" />
@@ -670,32 +727,32 @@ export default function App() {
             </div>
 
             {/* Right Showcase Card: Reference Character + Live Customized Sprite */}
-            <div className="rounded-2xl border border-slate-800/90 bg-slate-950/75 p-5">
-              <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
+            <div className="rounded-2xl border border-slate-800/90 bg-slate-950/75 p-3 sm:p-4 lg:p-5">
+              <div className="flex items-center justify-between text-xs text-slate-400 mb-2 sm:mb-3">
                 <span className="font-semibold text-white">{profile.displayName}</span>
                 <span>Best Score: <strong className="font-mono-num text-sky-300">{profile.highScore.toLocaleString()}</strong></span>
               </div>
 
-              <div className="grid grid-cols-2 items-center gap-4">
+              <div className="grid grid-cols-2 items-center gap-3 sm:gap-4">
                 <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
                   <img
                     src={CHARACTER_REFERENCE_IMAGE}
                     alt="Hero Character Inspiration"
                     referrerPolicy="no-referrer"
-                    className="h-44 w-full object-cover object-top"
+                    className="h-28 sm:h-36 lg:h-44 w-full object-cover object-top"
                   />
                 </div>
-                <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 py-2">
-                  <AvatarPreviewCanvas profile={profile} size={150} />
+                <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 py-1.5 sm:py-2">
+                  <AvatarPreviewCanvas profile={profile} size={120} />
                   <span className="text-[11px] font-medium text-slate-400">Live In-Game Look</span>
                 </div>
               </div>
 
-              <div className="mt-4 border-t border-slate-800 pt-3 text-xs text-slate-300">
+              <div className="mt-2.5 sm:mt-4 border-t border-slate-800 pt-2 sm:pt-3 text-xs text-slate-300">
                 <div className="font-semibold text-white">
                   Master Boss: {ZONES[selectedZone].bossName}
                 </div>
-                <div className="mt-0.5 text-slate-400">
+                <div className="mt-0.5 text-[11px] text-slate-400">
                   {ZONES[selectedZone].defaultGravityHint}
                 </div>
               </div>
@@ -703,7 +760,7 @@ export default function App() {
           </div>
 
           {/* Flat Single Control Hint Line */}
-          <div className="relative z-10 px-5 pb-4 text-center text-xs text-slate-400">
+          <div className="relative z-10 px-4 pb-2 sm:pb-3 text-center text-[11px] text-slate-400">
             AD Move · Space Jump · F Flip -1G · 1-5 / Q-E Gravity Level · J Weapon Combo · R Special Skill · Esc Pause
           </div>
         </div>
@@ -716,9 +773,9 @@ export default function App() {
 
           {/* Unobtrusive Top Perimeter HUD */}
           {hud && (
-            <div className="pointer-events-none fixed inset-x-0 top-0 z-20 flex items-start justify-between gap-4 p-3 sm:p-4">
+            <div className="pointer-events-none fixed inset-x-0 top-0 z-20 flex items-start justify-between gap-2 sm:gap-4 p-2 sm:p-3.5 safe-area-hud">
               {/* Top-Left Status Cluster */}
-              <div className="flex flex-col gap-1.5 rounded-xl bg-slate-950/75 px-3.5 py-2.5 border border-white/10">
+              <div className="flex flex-col gap-1 sm:gap-1.5 rounded-xl bg-slate-950/75 px-3 py-2 sm:px-3.5 sm:py-2.5 border border-white/10">
                 <div className="flex items-center gap-3">
                   {hud.infiniteLife ? (
                     <span className="flex items-center gap-1 text-xs font-bold text-emerald-300">
@@ -817,6 +874,15 @@ export default function App() {
                     }`}
                   >
                     <Gamepad2 className="h-4 w-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={toggleLandscapeFullscreen}
+                    aria-label="Toggle Landscape HD Fullscreen"
+                    className="rounded-lg border border-white/15 bg-slate-950/75 p-2 text-slate-200 hover:bg-slate-800"
+                  >
+                    {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                   </button>
 
                   <button
@@ -1093,6 +1159,39 @@ export default function App() {
           isOnline={isOnline}
           onClose={() => setActiveModal(null)}
         />
+      )}
+
+      {/* Portrait Mobile Rotate Prompt for Landscape HD */}
+      {isPortraitMobile && !portraitDismissed && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-6 text-center">
+          <div className="w-full max-w-sm rounded-2xl border border-sky-500/40 bg-[#0D1326] p-6 shadow-2xl space-y-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/15 text-sky-300">
+              <RotateCw className="h-6 w-6" />
+            </div>
+            <h2 className="font-display text-lg font-bold text-white">
+              Rotate to Landscape HD Mode
+            </h2>
+            <p className="text-xs leading-relaxed text-slate-300">
+              Aether Shift is tuned for widescreen landscape play on mobile phones and tablets so gravity corridors and colossal bosses fit cleanly.
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={toggleLandscapeFullscreen}
+                className="w-full rounded-xl bg-sky-500 py-2.5 text-xs font-bold text-slate-950 hover:bg-sky-400"
+              >
+                Enter Landscape Fullscreen
+              </button>
+              <button
+                type="button"
+                onClick={() => setPortraitDismissed(true)}
+                className="w-full rounded-xl border border-slate-700 py-2 text-xs font-semibold text-slate-300 hover:text-white"
+              >
+                Continue Anyway
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

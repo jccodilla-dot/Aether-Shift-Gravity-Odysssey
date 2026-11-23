@@ -357,17 +357,17 @@ export class GravityPlatformerEngine {
       segIdx++;
     }
 
-    // Colossal Boss Arena at the end of the zone
+    // Colossal Boss Arena at the end of the zone (wide enough for 21:9 phones and 4:3 tablets)
     const arenaStart = len - 650;
-    this.platforms.push({ x: arenaStart, y: 630, w: 1200, h: 120 });
-    this.platforms.push({ x: arenaStart + 40, y: 64, w: 1120, h: 36, isCeiling: true });
-    this.platforms.push({ x: arenaStart + 160, y: 440, w: 180, h: 22 });
-    this.platforms.push({ x: arenaStart + 580, y: 390, w: 180, h: 22 });
+    this.platforms.push({ x: arenaStart - 260, y: 630, w: 1600, h: 120 });
+    this.platforms.push({ x: arenaStart - 220, y: 64, w: 1520, h: 36, isCeiling: true });
+    this.platforms.push({ x: arenaStart + 120, y: 440, w: 180, h: 22 });
+    this.platforms.push({ x: arenaStart + 480, y: 390, w: 180, h: 22 });
 
     this.boss = {
       active: false,
       zoneId,
-      x: arenaStart + 920,
+      x: arenaStart + 740,
       y: 340,
       w: 180,
       h: 180,
@@ -380,7 +380,7 @@ export class GravityPlatformerEngine {
       animTime: 0,
       vx: 0,
       vy: 0,
-      anchorX: arenaStart + 900,
+      anchorX: arenaStart + 720,
       anchorY: 340,
       attackTimer: 1.6,
       patternIndex: 0,
@@ -430,6 +430,7 @@ export class GravityPlatformerEngine {
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('blur', this.onBlur);
     window.addEventListener('resize', this.handleResize);
+    window.addEventListener('orientationchange', this.handleResize);
     this.canvas.addEventListener('pointerdown', this.onCanvasPointerDown);
     this.canvas.addEventListener('contextmenu', this.onContextMenu);
   }
@@ -440,6 +441,7 @@ export class GravityPlatformerEngine {
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('blur', this.onBlur);
     window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener('orientationchange', this.handleResize);
     this.canvas.removeEventListener('pointerdown', this.onCanvasPointerDown);
     this.canvas.removeEventListener('contextmenu', this.onContextMenu);
     gameAudio.stopMusic();
@@ -661,8 +663,9 @@ export class GravityPlatformerEngine {
     // Move & Collide Platforms
     const prevGrounded = this.pGrounded;
     this.px += this.pvx * dt;
-    const minX = this.bossArenaLocked ? ZONES[this.zoneId].levelLength - 640 : 24;
-    const maxX = ZONES[this.zoneId].levelLength + 490;
+    const arenaStart = ZONES[this.zoneId].levelLength - 650;
+    const minX = this.bossArenaLocked ? arenaStart + 20 : 24;
+    const maxX = this.bossArenaLocked ? arenaStart + 820 : ZONES[this.zoneId].levelLength + 490;
     this.px = Math.max(minX, Math.min(maxX, this.px));
 
     this.py += this.pvy * dt;
@@ -744,8 +747,9 @@ export class GravityPlatformerEngine {
       this.spawnText(this.px + 120, 180, `${zone.bossName.toUpperCase()} APPROACHES!`, '#F43F5E', 1.4);
     }
 
+    const arenaCamX = zone.levelLength - 650 + 410 - this.viewW / 2;
     const targetCamX = this.bossArenaLocked
-      ? zone.levelLength - 650
+      ? arenaCamX
       : Math.max(0, Math.min(zone.levelLength - 650, this.px - this.viewW * 0.34));
     this.camX += (targetCamX - this.camX) * Math.min(1, dt * 8);
 

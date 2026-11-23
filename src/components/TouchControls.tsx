@@ -21,9 +21,9 @@ export const TouchControls: React.FC<Props> = ({
   const gravInfo = GRAVITY_PRESETS[gravityPreset];
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex items-end justify-between px-4 pb-5 sm:px-6 sm:pb-6">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex items-end justify-between safe-area-touch">
       {/* Left Thumb Movement Cluster */}
-      <div className="pointer-events-auto flex items-center gap-3">
+      <div className="pointer-events-auto flex items-center gap-2.5 sm:gap-3">
         <button
           type="button"
           aria-label="Move Left"
@@ -34,9 +34,9 @@ export const TouchControls: React.FC<Props> = ({
           onPointerUp={() => onMoveChange(0)}
           onPointerLeave={() => onMoveChange(0)}
           onPointerCancel={() => onMoveChange(0)}
-          className="flex h-14 w-14 items-center justify-center rounded-xl border border-white/20 bg-slate-900/75 text-white active:scale-95 active:bg-pink-600/80"
+          className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl border border-white/20 bg-slate-900/75 text-white active:scale-95 active:bg-pink-600/80"
         >
-          <ArrowLeft className="h-6 w-6" />
+          <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
         <button
           type="button"
@@ -48,14 +48,14 @@ export const TouchControls: React.FC<Props> = ({
           onPointerUp={() => onMoveChange(0)}
           onPointerLeave={() => onMoveChange(0)}
           onPointerCancel={() => onMoveChange(0)}
-          className="flex h-14 w-14 items-center justify-center rounded-xl border border-white/20 bg-slate-900/75 text-white active:scale-95 active:bg-pink-600/80"
+          className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl border border-white/20 bg-slate-900/75 text-white active:scale-95 active:bg-pink-600/80"
         >
-          <ArrowRight className="h-6 w-6" />
+          <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
       </div>
 
       {/* Right Thumb Action & Gravity Cluster */}
-      <div className="pointer-events-auto grid grid-cols-3 gap-2.5">
+      <div className="pointer-events-auto grid grid-cols-3 gap-2 sm:gap-2.5">
         {equippedSkill ? (
           <button
             type="button"
@@ -65,7 +65,7 @@ export const TouchControls: React.FC<Props> = ({
               onAction('skill');
             }}
             disabled={skillCooldown > 0}
-            className="flex h-13 w-13 flex-col items-center justify-center rounded-xl border border-emerald-400/40 bg-slate-900/80 text-emerald-300 disabled:opacity-45 active:scale-95"
+            className="flex h-11 w-11 sm:h-13 sm:w-13 flex-col items-center justify-center rounded-xl border border-emerald-400/40 bg-slate-900/80 text-emerald-300 disabled:opacity-45 active:scale-95"
           >
             <Sparkles className="h-4 w-4" />
             <span className="font-mono-num text-[10px] font-bold">
@@ -73,7 +73,7 @@ export const TouchControls: React.FC<Props> = ({
             </span>
           </button>
         ) : (
-          <div className="h-13 w-13" />
+          <div className="h-11 w-11 sm:h-13 sm:w-13" />
         )}
 
         <button
@@ -83,7 +83,7 @@ export const TouchControls: React.FC<Props> = ({
             e.preventDefault();
             onAction('cycle_grav');
           }}
-          className="flex h-13 w-13 flex-col items-center justify-center rounded-xl border border-sky-400/40 bg-slate-900/80 text-sky-300 active:scale-95"
+          className="flex h-11 w-11 sm:h-13 sm:w-13 flex-col items-center justify-center rounded-xl border border-sky-400/40 bg-slate-900/80 text-sky-300 active:scale-95"
         >
           <Orbit className="h-4 w-4" />
           <span className="font-mono-num text-[10px] font-bold">{gravInfo.shortLabel}</span>
@@ -96,13 +96,13 @@ export const TouchControls: React.FC<Props> = ({
             e.preventDefault();
             onAction('invert');
           }}
-          className="flex h-13 w-13 flex-col items-center justify-center rounded-xl border border-purple-400/45 bg-slate-900/80 text-purple-300 active:scale-95"
+          className="flex h-11 w-11 sm:h-13 sm:w-13 flex-col items-center justify-center rounded-xl border border-purple-400/45 bg-slate-900/80 text-purple-300 active:scale-95"
         >
           <ArrowUpDown className="h-4 w-4" />
           <span className="text-[10px] font-bold">FLIP</span>
         </button>
 
-        <div className="h-14 w-14" />
+        <div className="h-12 w-12 sm:h-14 sm:w-14" />
 
         <button
           type="button"
@@ -111,7 +111,7 @@ export const TouchControls: React.FC<Props> = ({
             e.preventDefault();
             onAction('attack');
           }}
-          className="flex h-14 w-14 flex-col items-center justify-center rounded-xl border border-pink-400/50 bg-pink-600/85 text-white active:scale-95"
+          className="flex h-12 w-12 sm:h-14 sm:w-14 flex-col items-center justify-center rounded-xl border border-pink-400/50 bg-pink-600/85 text-white active:scale-95"
         >
           <Swords className="h-5 w-5" />
           <span className="text-[10px] font-bold">ATK</span>
@@ -124,7 +124,7 @@ export const TouchControls: React.FC<Props> = ({
             e.preventDefault();
             onAction('jump');
           }}
-          className="flex h-14 w-14 flex-col items-center justify-center rounded-xl border border-amber-400/50 bg-amber-500/85 text-slate-950 active:scale-95"
+          className="flex h-12 w-12 sm:h-14 sm:w-14 flex-col items-center justify-center rounded-xl border border-amber-400/50 bg-amber-500/85 text-slate-950 active:scale-95"
         >
           <ArrowUp className="h-5 w-5" />
           <span className="text-[10px] font-bold">JUMP</span>

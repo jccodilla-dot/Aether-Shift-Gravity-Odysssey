@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Aether Shift</string>
+    <string name="title_activity_main">Aether Shift</string>
+    <string name="package_name">com.jmclabs.aethershift</string>
+    <string name="custom_url_scheme">com.jmclabs.aethershift</string>
+</resources>

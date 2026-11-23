@@ -20,7 +20,8 @@ export default defineConfig(() => {
           description: 'Gravity-shifting galactic platformer with weapon combos, colossal bosses, and offline play.',
           theme_color: '#0B1026',
           background_color: '#070B19',
-          display: 'standalone',
+          display: 'fullscreen',
+          orientation: 'landscape',
           start_url: '/',
           scope: '/',
           icons: [
