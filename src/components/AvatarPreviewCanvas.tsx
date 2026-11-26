@@ -57,6 +57,7 @@ export const AvatarPreviewCanvas: React.FC<Props> = ({ profile, size = 156 }) =>
         invulnTimer: 0,
         shieldActive: false,
         wingsActive: false,
+        hiddenPowerActive: false,
         weapon: profile.equippedWeapon,
         attackTimer: 0,
         comboStep: 1,
@@ -65,6 +66,8 @@ export const AvatarPreviewCanvas: React.FC<Props> = ({ profile, size = 156 }) =>
         equippedHair: profile.equippedHair,
         equippedAura: profile.equippedAura,
         activeSkillEffect: null,
+        photoUrl: profile.customPhotoDataUrl,
+        usePhotoCharacter: profile.usePhotoCharacter,
       });
       ctx.restore();
       ctx.restore();
@@ -79,7 +82,7 @@ export const AvatarPreviewCanvas: React.FC<Props> = ({ profile, size = 156 }) =>
       ref={canvasRef}
       style={{ width: size, height: size }}
       className="block shrink-0"
-      aria-label="Customized Hero Preview"
+      aria-label="Customized Sky Runner Preview"
     />
   );
 };

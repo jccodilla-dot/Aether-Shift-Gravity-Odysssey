@@ -69,7 +69,7 @@ jobs:
       - name: Prepare named APK output
         run: |
           mkdir -p release-apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk "release-apk/AetherShift-GravityOdyssey-v${{ github.run_number }}.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "release-apk/AryasInfiniteOdyssey-v${{ github.run_number }}.apk"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7

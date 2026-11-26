@@ -15,8 +15,8 @@ import {
   DAILY_LOGIN_REWARDS,
   getDailyChallengesForDate,
   getTodayDateKey,
+  getZoneConfig,
   SPECIAL_SKILLS,
-  ZONES,
 } from '../game/catalog';
 import { gameAudio } from '../game/audio';
 import { CosmeticSlot, LeaderboardEntry, PlayerProfile, SkillId, ZoneId } from '../game/types';
@@ -240,7 +240,7 @@ export const WardrobeModal: React.FC<WardrobeModalProps> = ({
                         <p className="mt-2 font-mono-num text-[11px] text-slate-500">
                           {unlocked
                             ? `Unlocked · Cooldown ${sk.cooldownSec}s`
-                            : `Clear Zone ${sk.unlockZone} (${ZONES[sk.unlockZone].name})`}
+                            : `Clear Zone ${sk.unlockZone} (${getZoneConfig(sk.unlockZone).name})`}
                         </p>
                       </div>
                     );
@@ -458,11 +458,11 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
 
   const handleShare = async () => {
     gameAudio.playUiClick();
-    const shareText = `Can you beat my ${profile.highScore.toLocaleString()} score in Aether Shift: Gravity Odyssey (Zone ${selectedZone})?`;
+    const shareText = `Can you beat my ${profile.highScore.toLocaleString()} score in Arya's Infinite Odyssey (Zone ${selectedZone})?`;
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Aether Shift Challenge',
+          title: "Arya's Infinite Odyssey Challenge",
           text: shareText,
           url: shareUrl,
         });
@@ -487,10 +487,10 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
           <div>
             <h2 className="font-display text-xl font-bold text-white flex items-center gap-2">
               <Trophy className="h-5 w-5 text-amber-400" />
-              Global Leaderboard
+              Offline Hall of Fame
             </h2>
             <p className="text-xs text-slate-400">
-              {isOnline ? 'Live Cloud Rankings' : 'Offline Cached Rankings'} · Personal Best:{' '}
+              {isOnline ? 'Local Device Records' : 'Offline Device Records'} · Personal Best:{' '}
               <span className="font-mono-num font-bold text-white">{profile.highScore.toLocaleString()}</span>
             </p>
           </div>
@@ -526,7 +526,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
           {/* Rankings Table */}
           {entries.length === 0 ? (
             <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-8 text-center text-sm text-slate-400">
-              Sign in with Google and complete a run to post the first score on the global leaderboard.
+              Complete a run in any of the 100 Zones to record your first score in the offline Hall of Fame.
             </div>
           ) : (
             <div className="divide-y divide-slate-800/80 rounded-xl border border-slate-800 bg-slate-900/50">

@@ -28,7 +28,9 @@ class GameAudioEngine {
   private ensureContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!this.ctx) {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!AudioCtx) return null;
       this.ctx = new AudioCtx();
       this.masterGain = this.ctx.createGain();
@@ -209,13 +211,31 @@ class GameAudioEngine {
         this.playTone(1380, 180, 0.26, 'sawtooth', 0.26);
         this.playNoise(0.18, 3200, 0.26);
       }
-    } else {
+    } else if (weapon === 'staff') {
       const base = 460 + comboStep * 130;
       this.playTone(base, base * 1.45, 0.18, 'sine', 0.24);
       this.playTone(base * 1.5, base * 0.9, 0.2, 'triangle', 0.16, 'sfx', 0.03);
       if (comboStep === 3) {
         this.playNoise(0.22, 1800, 0.24, 0.06);
       }
+    } else if (weapon === 'super_spread_fireball') {
+      this.playNoise(0.16, 2200, 0.3);
+      this.playTone(460, 150, 0.18, 'sawtooth', 0.24);
+    } else if (weapon === 'super_ultra_laser') {
+      this.playTone(180, 620, 0.36, 'sawtooth', 0.28);
+      this.playTone(720, 240, 0.4, 'square', 0.18, 'sfx', 0.04);
+      this.playNoise(0.32, 3600, 0.3);
+    } else if (weapon === 'super_laser_sword') {
+      this.playNoise(0.14, 3400, 0.26);
+      this.playTone(780, 320, 0.18, 'sawtooth', 0.24);
+      this.playTone(1120, 680, 0.16, 'sine', 0.2, 'sfx', 0.03);
+    } else if (weapon === 'super_round_fireball') {
+      this.playTone(220, 90, 0.28, 'sawtooth', 0.32);
+      this.playNoise(0.24, 1500, 0.32);
+    } else {
+      // super_machine_gun
+      this.playTone(880 + comboStep * 90, 260, 0.06, 'square', 0.15);
+      this.playNoise(0.05, 2800, 0.16);
     }
   }
 
@@ -230,6 +250,23 @@ class GameAudioEngine {
     if (comboMult >= 2) {
       this.playTone(freq * 1.5, freq * 2, 0.14, 'triangle', 0.18, 'sfx', 0.04);
     }
+  }
+
+  public playHealCoin() {
+    this.playTone(523.25, 783.99, 0.14, 'sine', 0.24);
+    this.playTone(659.25, 1046.5, 0.18, 'triangle', 0.2, 'sfx', 0.05);
+  }
+
+  public playHiddenPower() {
+    const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+    notes.forEach((n, idx) => {
+      this.playTone(n, n * 1.15, 0.22, 'triangle', 0.28, 'sfx', idx * 0.06);
+    });
+  }
+
+  public playLifeRevive() {
+    this.playTone(392, 784, 0.25, 'triangle', 0.32);
+    this.playTone(523.25, 1046.5, 0.32, 'sine', 0.26, 'sfx', 0.1);
   }
 
   public playEnemyHit() {
@@ -303,32 +340,37 @@ class GameAudioEngine {
     if (!this._musicEnabled) return;
 
     this.ensureContext();
-    const tempoMs = isBoss ? 145 : zone === 2 ? 190 : zone === 4 ? 175 : 205;
+    const tier = Math.floor((Math.max(1, zone) - 1) / 5);
+    const tierTempoBoost = Math.min(45, tier * 3);
+    const zoneSlot = ((Math.max(1, zone) - 1) % 5) + 1;
+    const tempoMs = Math.max(
+      110,
+      (isBoss ? 145 : zoneSlot === 2 ? 190 : zoneSlot === 4 ? 175 : 205) - tierTempoBoost
+    );
 
-    const scales: Record<ZoneId, number[]> = {
-      1: [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 392.0, 329.63], // Sea aquatic pentatonic
-      2: [329.63, 392.0, 440.0, 493.88, 587.33, 659.25, 587.33, 493.88], // Sky uplifting major
-      3: [220.0, 261.63, 293.66, 329.63, 392.0, 329.63, 261.63, 196.0], // Cavern minor
-      4: [246.94, 293.66, 369.99, 440.0, 493.88, 587.33, 440.0, 369.99], // Space cosmic synth
-      5: [261.63, 311.13, 392.0, 466.16, 523.25, 622.25, 466.16, 392.0], // Galactic heroic
+    const scales: Record<number, number[]> = {
+      1: [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 392.0, 329.63],
+      2: [329.63, 392.0, 440.0, 493.88, 587.33, 659.25, 587.33, 493.88],
+      3: [220.0, 261.63, 293.66, 329.63, 392.0, 329.63, 261.63, 196.0],
+      4: [246.94, 293.66, 369.99, 440.0, 493.88, 587.33, 440.0, 369.99],
+      5: [261.63, 311.13, 392.0, 466.16, 523.25, 622.25, 466.16, 392.0],
     };
 
     const tick = () => {
       if (!this._musicEnabled || !this._isPlayingMusic) return;
-      const scale = scales[this._currentZone];
+      const slot = ((Math.max(1, this._currentZone) - 1) % 5) + 1;
+      const scale = scales[slot] || scales[1];
       const idx = this.stepIndex % scale.length;
       const note = scale[idx];
       const bass = note * 0.25;
 
       if (this._isBoss) {
-        // Driving boss bass + urgent lead
         this.playTone(bass, bass * 0.96, 0.12, 'sawtooth', 0.28, 'music');
         if (this.stepIndex % 2 === 0) {
           this.playTone(note * 1.5, note * 1.5, 0.11, 'square', 0.14, 'music');
         }
       } else {
-        // Zone ambient arpeggio + soft bass on beat 0 & 4
-        const wave: OscillatorType = this._currentZone === 1 || this._currentZone === 3 ? 'sine' : 'triangle';
+        const wave: OscillatorType = slot === 1 || slot === 3 ? 'sine' : 'triangle';
         this.playTone(note, note, 0.17, wave, 0.18, 'music');
         if (this.stepIndex % 4 === 0) {
           this.playTone(bass, bass, 0.34, 'triangle', 0.26, 'music');

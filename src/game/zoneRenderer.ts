@@ -1,4 +1,4 @@
-import { ZONES } from './catalog';
+import { getZoneConfig } from './catalog';
 import { EnemyKind, ZoneId } from './types';
 
 export interface RenderEnemy {
@@ -40,20 +40,20 @@ export function drawZoneBackground(
   height: number,
   time: number
 ) {
-  const zone = ZONES[zoneId];
+  const zone = getZoneConfig(zoneId);
   const grad = ctx.createLinearGradient(0, 0, 0, height);
   grad.addColorStop(0, zone.skyTop);
   grad.addColorStop(1, zone.skyBottom);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, width, height);
 
-  if (zone.key === 'sea') {
-    // Sunbeams penetrating ocean water
+  if (zone.key === 'sea' || zone.key === 'forest') {
+    const isForest = zone.key === 'forest';
     ctx.save();
     for (let i = 0; i < 6; i++) {
       const rx = ((i * 290 - camX * 0.12) % (width + 320)) - 120;
       const beamGrad = ctx.createLinearGradient(rx, 0, rx + 80, height);
-      beamGrad.addColorStop(0, 'rgba(103, 232, 249, 0.14)');
+      beamGrad.addColorStop(0, isForest ? 'rgba(134, 239, 172, 0.14)' : 'rgba(103, 232, 249, 0.14)');
       beamGrad.addColorStop(1, 'rgba(6, 70, 99, 0)');
       ctx.fillStyle = beamGrad;
       ctx.beginPath();
@@ -64,8 +64,7 @@ export function drawZoneBackground(
       ctx.closePath();
       ctx.fill();
     }
-    // Parallax coral silhouettes & swaying kelp
-    ctx.fillStyle = '#032B43';
+    ctx.fillStyle = isForest ? '#064E3B' : '#032B43';
     for (let i = 0; i < 12; i++) {
       const kx = ((i * 180 - camX * 0.28) % (width + 240)) - 80;
       const sway = Math.sin(time * 1.8 + i) * 14;
@@ -75,8 +74,7 @@ export function drawZoneBackground(
       ctx.quadraticCurveTo(kx + 22 + sway, height - 110, kx + 28, height);
       ctx.fill();
     }
-    // Ambient rising ocean bubbles
-    ctx.strokeStyle = 'rgba(165, 243, 252, 0.38)';
+    ctx.strokeStyle = isForest ? 'rgba(134, 239, 172, 0.42)' : 'rgba(165, 243, 252, 0.38)';
     ctx.lineWidth = 1.5;
     for (let i = 0; i < 24; i++) {
       const bx = ((i * 97 - camX * 0.4) % width + width) % width;
@@ -86,22 +84,29 @@ export function drawZoneBackground(
       ctx.stroke();
     }
     ctx.restore();
-  } else if (zone.key === 'sky') {
-    // Golden sun halo
+  } else if (zone.key === 'sky' || zone.key === 'solar') {
+    const isSolar = zone.key === 'solar';
     ctx.save();
-    const sunGrad = ctx.createRadialGradient(width * 0.78, height * 0.22, 12, width * 0.78, height * 0.22, 180);
+    const sunGrad = ctx.createRadialGradient(
+      width * 0.78,
+      height * 0.22,
+      12,
+      width * 0.78,
+      height * 0.22,
+      isSolar ? 220 : 180
+    );
     sunGrad.addColorStop(0, 'rgba(254, 240, 138, 0.95)');
-    sunGrad.addColorStop(0.35, 'rgba(251, 191, 36, 0.35)');
+    sunGrad.addColorStop(0.35, isSolar ? 'rgba(249, 115, 22, 0.45)' : 'rgba(251, 191, 36, 0.35)');
     sunGrad.addColorStop(1, 'rgba(251, 191, 36, 0)');
     ctx.fillStyle = sunGrad;
     ctx.beginPath();
-    ctx.arc(width * 0.78, height * 0.22, 180, 0, Math.PI * 2);
+    ctx.arc(width * 0.78, height * 0.22, isSolar ? 220 : 180, 0, Math.PI * 2);
     ctx.fill();
 
-    // Distant floating cloud islands
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+    ctx.fillStyle = isSolar ? 'rgba(254, 215, 170, 0.14)' : 'rgba(255, 255, 255, 0.16)';
     for (let i = 0; i < 8; i++) {
-      const cx = ((i * 260 - camX * 0.18 - time * 14) % (width + 300) + (width + 300)) % (width + 300) - 120;
+      const cx =
+        (((i * 260 - camX * 0.18 - time * 14) % (width + 300)) + (width + 300)) % (width + 300) - 120;
       const cy = 90 + (i % 4) * 85;
       ctx.beginPath();
       ctx.ellipse(cx, cy, 85, 26, 0, 0, Math.PI * 2);
@@ -109,26 +114,14 @@ export function drawZoneBackground(
       ctx.ellipse(cx + 42, cy + 8, 52, 20, 0, 0, Math.PI * 2);
       ctx.fill();
     }
-    // Distant soaring birds
-    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 5; i++) {
-      const bx = ((i * 310 - camX * 0.25 + time * 35) % (width + 200)) - 60;
-      const by = 110 + i * 32 + Math.sin(time * 3 + i) * 10;
-      const wing = Math.sin(time * 8 + i) * 5;
-      ctx.beginPath();
-      ctx.moveTo(bx - 9, by + wing);
-      ctx.quadraticCurveTo(bx - 4, by - 4, bx, by);
-      ctx.quadraticCurveTo(bx + 4, by - 4, bx + 9, by + wing);
-      ctx.stroke();
-    }
     ctx.restore();
-  } else if (zone.key === 'cave') {
-    // Subterranean stalactites & glowing amethyst veins
+  } else if (zone.key === 'cave' || zone.key === 'glacial' || zone.key === 'forge') {
     ctx.save();
-    ctx.fillStyle = '#140824';
+    ctx.fillStyle =
+      zone.key === 'glacial' ? '#0C4A6E' : zone.key === 'forge' ? '#451A03' : '#140824';
     for (let i = 0; i < 16; i++) {
-      const sx = ((i * 140 - camX * 0.25) % (width + 200) + (width + 200)) % (width + 200) - 80;
+      const sx =
+        (((i * 140 - camX * 0.25) % (width + 200)) + (width + 200)) % (width + 200) - 80;
       const sh = 65 + (i % 4) * 35;
       ctx.beginPath();
       ctx.moveTo(sx - 28, 0);
@@ -137,11 +130,18 @@ export function drawZoneBackground(
       ctx.closePath();
       ctx.fill();
     }
-    // Glowing crystal clusters in background
     for (let i = 0; i < 10; i++) {
-      const cx = ((i * 210 - camX * 0.35) % (width + 220) + (width + 220)) % (width + 220) - 60;
+      const cx =
+        (((i * 210 - camX * 0.35) % (width + 220)) + (width + 220)) % (width + 220) - 60;
       const cy = height - 45 - (i % 3) * 28;
-      ctx.fillStyle = i % 2 === 0 ? 'rgba(232, 121, 249, 0.25)' : 'rgba(168, 85, 247, 0.25)';
+      ctx.fillStyle =
+        zone.key === 'glacial'
+          ? 'rgba(125, 211, 252, 0.28)'
+          : zone.key === 'forge'
+          ? 'rgba(251, 146, 60, 0.28)'
+          : i % 2 === 0
+          ? 'rgba(232, 121, 249, 0.25)'
+          : 'rgba(168, 85, 247, 0.25)';
       ctx.beginPath();
       ctx.moveTo(cx - 16, height);
       ctx.lineTo(cx - 6, cy);
@@ -152,7 +152,6 @@ export function drawZoneBackground(
     }
     ctx.restore();
   } else if (zone.key === 'space') {
-    // Deep starfield + swirling nebula + ringed planet
     ctx.save();
     for (let i = 0; i < 65; i++) {
       const sx = ((i * 137 - camX * (0.05 + (i % 3) * 0.04)) % width + width) % width;
@@ -161,8 +160,7 @@ export function drawZoneBackground(
       ctx.fillStyle = `rgba(248, 250, 252, ${twinkle.toFixed(2)})`;
       ctx.fillRect(sx, sy, (i % 3) + 1, (i % 3) + 1);
     }
-    // Ringed planet
-    const px = width * 0.72 - (camX * 0.04) % 240;
+    const px = width * 0.72 - ((camX * 0.04) % 240);
     const py = height * 0.28;
     const pGrad = ctx.createRadialGradient(px - 18, py - 18, 10, px, py, 64);
     pGrad.addColorStop(0, '#F472B6');
@@ -178,12 +176,17 @@ export function drawZoneBackground(
     ctx.stroke();
     ctx.restore();
   } else {
-    // Galactic Core Sanctuary: spiral galaxy vortex + alien prism lattice
+    // galactic or cyber
     ctx.save();
     const gx = width * 0.5;
     const gy = height * 0.42;
     for (let arm = 0; arm < 3; arm++) {
-      ctx.strokeStyle = arm === 0 ? 'rgba(52, 211, 153, 0.22)' : 'rgba(168, 85, 247, 0.22)';
+      ctx.strokeStyle =
+        zone.key === 'cyber'
+          ? 'rgba(34, 211, 238, 0.18)'
+          : arm === 0
+          ? 'rgba(52, 211, 153, 0.22)'
+          : 'rgba(168, 85, 247, 0.22)';
       ctx.lineWidth = 18;
       ctx.beginPath();
       for (let t = 0; t < 36; t++) {
@@ -196,8 +199,7 @@ export function drawZoneBackground(
       }
       ctx.stroke();
     }
-    // Geometric grid horizon
-    ctx.strokeStyle = 'rgba(52, 211, 153, 0.12)';
+    ctx.strokeStyle = zone.key === 'cyber' ? 'rgba(34, 211, 238, 0.14)' : 'rgba(52, 211, 153, 0.12)';
     ctx.lineWidth = 1;
     for (let i = 0; i < 16; i++) {
       const lx = ((i * 120 - camX * 0.2) % width + width) % width;
@@ -214,7 +216,6 @@ export function drawEnemySprite(ctx: CanvasRenderingContext2D, e: RenderEnemy, t
   ctx.save();
   ctx.translate(e.x, e.y);
 
-  // Telegraph ring before enemy fires or lunges
   if (e.telegraphTimer > 0) {
     ctx.strokeStyle = 'rgba(248, 113, 113, 0.9)';
     ctx.lineWidth = 2.5;
@@ -364,7 +365,6 @@ export function drawEnemySprite(ctx: CanvasRenderingContext2D, e: RenderEnemy, t
     }
   }
 
-  // Glowing eye
   ctx.fillStyle = '#FFFFFF';
   ctx.beginPath();
   ctx.arc(6, -3 + (e.kind === 'crab' || e.kind === 'golem' ? -2 : bob), 3, 0, Math.PI * 2);
@@ -372,7 +372,6 @@ export function drawEnemySprite(ctx: CanvasRenderingContext2D, e: RenderEnemy, t
 
   ctx.restore();
 
-  // Mini HP bar above damaged enemy
   if (e.hp < e.maxHp) {
     const bw = 34;
     ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
@@ -384,13 +383,15 @@ export function drawEnemySprite(ctx: CanvasRenderingContext2D, e: RenderEnemy, t
 
 export function drawColossalBoss(ctx: CanvasRenderingContext2D, b: RenderBoss) {
   if (!b.active) return;
+  const zoneCfg = getZoneConfig(b.zoneId);
+  const model = zoneCfg.bossModelIndex;
+
   ctx.save();
   ctx.translate(b.x, b.y);
 
   const flash = b.hitFlash > 0;
   const pulse = Math.sin(b.animTime * 4) * 8;
 
-  // Telegraph aura
   if (b.telegraphTimer > 0) {
     ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
     ctx.lineWidth = 5;
@@ -399,9 +400,8 @@ export function drawColossalBoss(ctx: CanvasRenderingContext2D, b: RenderBoss) {
     ctx.stroke();
   }
 
-  if (b.zoneId === 1) {
-    // Leviathan Kraken-Titan: Colossal armored octopus-mech with 4 sweeping tentacles
-    ctx.strokeStyle = flash ? '#FFFFFF' : '#0891B2';
+  if (model === 1) {
+    ctx.strokeStyle = flash ? '#FFFFFF' : zoneCfg.platformTrim;
     ctx.lineWidth = 18;
     ctx.lineCap = 'round';
     for (let i = -2; i <= 2; i++) {
@@ -412,22 +412,20 @@ export function drawColossalBoss(ctx: CanvasRenderingContext2D, b: RenderBoss) {
       ctx.quadraticCurveTo(i * 46 + sway, 75, i * 32 + sway * 1.3, 120);
       ctx.stroke();
     }
-    ctx.fillStyle = flash ? '#FFFFFF' : '#0E7490';
+    ctx.fillStyle = flash ? '#FFFFFF' : zoneCfg.platformColor;
     ctx.beginPath();
     ctx.ellipse(0, -10 + pulse * 0.4, 78, 88, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#22D3EE';
+    ctx.strokeStyle = zoneCfg.accentColor;
     ctx.lineWidth = 5;
     ctx.stroke();
-    // Giant glowing abyssal core eye
     ctx.fillStyle = b.phase > 1 ? '#F43F5E' : '#FACC15';
     ctx.beginPath();
     ctx.arc(-18, -6 + pulse * 0.4, 22, 0, Math.PI * 2);
     ctx.fill();
-  } else if (b.zoneId === 2) {
-    // Aurelia Sky-Galleon: Colossal winged sky-dreadnought
+  } else if (model === 2) {
     const flap = Math.sin(b.animTime * 5) * 22;
-    ctx.fillStyle = flash ? '#FFFFFF' : '#F59E0B';
+    ctx.fillStyle = flash ? '#FFFFFF' : zoneCfg.accentColor;
     ctx.beginPath();
     ctx.moveTo(0, -25);
     ctx.lineTo(95, -90 + flap);
@@ -435,23 +433,21 @@ export function drawColossalBoss(ctx: CanvasRenderingContext2D, b: RenderBoss) {
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = flash ? '#FFFFFF' : '#1E3A8A';
+    ctx.fillStyle = flash ? '#FFFFFF' : zoneCfg.skyTop;
     ctx.beginPath();
     ctx.roundRect(-95, -35, 190, 82, 22);
     ctx.fill();
-    ctx.strokeStyle = '#FBBF24';
+    ctx.strokeStyle = zoneCfg.accentColor;
     ctx.lineWidth = 5;
     ctx.stroke();
-    // Broadside cannon ports
     ctx.fillStyle = '#F8FAFC';
     for (let c = -55; c <= 55; c += 36) {
       ctx.beginPath();
       ctx.arc(c, 12, 11, 0, Math.PI * 2);
       ctx.fill();
     }
-  } else if (b.zoneId === 3) {
-    // Obsidian Wyrm Colossus: Giant crystal-armored dragon head & neck
-    ctx.fillStyle = flash ? '#FFFFFF' : '#4C1D95';
+  } else if (model === 3) {
+    ctx.fillStyle = flash ? '#FFFFFF' : zoneCfg.platformColor;
     ctx.beginPath();
     ctx.moveTo(-90, 10);
     ctx.lineTo(-40, -78);
@@ -461,11 +457,10 @@ export function drawColossalBoss(ctx: CanvasRenderingContext2D, b: RenderBoss) {
     ctx.lineTo(-60, 72);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = '#E879F9';
+    ctx.strokeStyle = zoneCfg.accentColor;
     ctx.lineWidth = 6;
     ctx.stroke();
-    // Glowing amethyst horns
-    ctx.fillStyle = '#F0ABFC';
+    ctx.fillStyle = zoneCfg.platformTrim;
     ctx.beginPath();
     ctx.moveTo(10, -68);
     ctx.lineTo(42, -120);
@@ -475,13 +470,12 @@ export function drawColossalBoss(ctx: CanvasRenderingContext2D, b: RenderBoss) {
     ctx.beginPath();
     ctx.arc(-28, -10, 18, 0, Math.PI * 2);
     ctx.fill();
-  } else if (b.zoneId === 4) {
-    // Singularity Star-Titan: Giant planetoid core + 4 rotating orbital shields
+  } else if (model === 4) {
     ctx.fillStyle = flash ? '#FFFFFF' : '#312E81';
     ctx.beginPath();
     ctx.arc(0, 0, 86, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#EC4899';
+    ctx.strokeStyle = zoneCfg.accentColor;
     ctx.lineWidth = 6;
     ctx.stroke();
     ctx.fillStyle = '#F472B6';
@@ -498,8 +492,7 @@ export function drawColossalBoss(ctx: CanvasRenderingContext2D, b: RenderBoss) {
       ctx.fill();
     }
   } else {
-    // Omega Astral Sovereign: Colossal galactic overlord with crown & prism halo
-    ctx.strokeStyle = '#34D399';
+    ctx.strokeStyle = zoneCfg.accentColor;
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.arc(0, 0, 118, 0, Math.PI * 2);
@@ -513,11 +506,11 @@ export function drawColossalBoss(ctx: CanvasRenderingContext2D, b: RenderBoss) {
     ctx.lineTo(-86, 0);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = b.phase > 1 ? '#F43F5E' : '#A855F7';
+    ctx.strokeStyle = b.phase > 1 ? '#F43F5E' : zoneCfg.platformTrim;
     ctx.lineWidth = 6;
     ctx.stroke();
 
-    ctx.fillStyle = '#34D399';
+    ctx.fillStyle = zoneCfg.accentColor;
     ctx.beginPath();
     ctx.arc(0, 0, 30, 0, Math.PI * 2);
     ctx.fill();

@@ -15,9 +15,9 @@ export default defineConfig(() => {
         includeAssets: ['icon.svg', 'apple-touch-icon.png', 'assets/**/*'],
         manifest: {
           id: '/',
-          name: 'Aether Shift: Gravity Odyssey',
-          short_name: 'AetherShift',
-          description: 'Gravity-shifting galactic platformer with weapon combos, colossal bosses, and offline play.',
+          name: "Arya's Infinite Odyssey",
+          short_name: 'AryaOdyssey',
+          description: '100-zone offline gravity-shifting galactic platformer with super weapons, colossal bosses, and custom hero photo.',
           theme_color: '#0B1026',
           background_color: '#070B19',
           display: 'fullscreen',

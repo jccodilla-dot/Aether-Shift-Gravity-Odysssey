@@ -6,17 +6,21 @@ import { GravityPreset, SkillId } from '../game/types';
 interface Props {
   onMoveChange: (dir: number) => void;
   onAction: (action: 'jump' | 'attack' | 'invert' | 'cycle_grav' | 'skill') => void;
+  onAttackHoldChange?: (held: boolean) => void;
   gravityPreset: GravityPreset;
   equippedSkill: SkillId | null;
   skillCooldown: number;
+  hiddenPowerTimer?: number;
 }
 
 export const TouchControls: React.FC<Props> = ({
   onMoveChange,
   onAction,
+  onAttackHoldChange,
   gravityPreset,
   equippedSkill,
   skillCooldown,
+  hiddenPowerTimer = 0,
 }) => {
   const gravInfo = GRAVITY_PRESETS[gravityPreset];
 
@@ -102,7 +106,13 @@ export const TouchControls: React.FC<Props> = ({
           <span className="text-[10px] font-bold">FLIP</span>
         </button>
 
-        <div className="h-12 w-12 sm:h-14 sm:w-14" />
+        <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center">
+          {hiddenPowerTimer > 0 && (
+            <div className="rounded-lg border border-amber-300/60 bg-amber-500/25 px-1.5 py-1 text-center font-mono-num text-[10px] font-extrabold text-amber-200">
+              {hiddenPowerTimer.toFixed(0)}s
+            </div>
+          )}
+        </div>
 
         <button
           type="button"
@@ -110,7 +120,11 @@ export const TouchControls: React.FC<Props> = ({
           onPointerDown={(e) => {
             e.preventDefault();
             onAction('attack');
+            onAttackHoldChange?.(true);
           }}
+          onPointerUp={() => onAttackHoldChange?.(false)}
+          onPointerLeave={() => onAttackHoldChange?.(false)}
+          onPointerCancel={() => onAttackHoldChange?.(false)}
           className="flex h-12 w-12 sm:h-14 sm:w-14 flex-col items-center justify-center rounded-xl border border-pink-400/50 bg-pink-600/85 text-white active:scale-95"
         >
           <Swords className="h-5 w-5" />

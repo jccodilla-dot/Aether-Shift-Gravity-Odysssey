@@ -1,10 +1,30 @@
-export type GameScreenState = 'TITLE' | 'PLAYING' | 'PAUSED' | 'STAGE_CLEAR' | 'GAME_OVER';
+export type GameScreenState = 'TITLE' | 'PLAYING' | 'PAUSED' | 'STAGE_CLEAR' | 'GAME_OVER' | 'EXITED';
 
-export type WeaponId = 'sword' | 'gun' | 'staff';
+export type WeaponId =
+  | 'sword'
+  | 'gun'
+  | 'staff'
+  | 'super_spread_fireball'
+  | 'super_ultra_laser'
+  | 'super_laser_sword'
+  | 'super_round_fireball'
+  | 'super_machine_gun';
 
 export type GravityPreset = 'zero' | 'low' | 'normal' | 'heavy' | 'inverted';
 
-export type ZoneId = 1 | 2 | 3 | 4 | 5;
+export type ZoneId = number;
+
+export type ZoneBiomeKey =
+  | 'sea'
+  | 'sky'
+  | 'cave'
+  | 'space'
+  | 'galactic'
+  | 'solar'
+  | 'cyber'
+  | 'forest'
+  | 'glacial'
+  | 'forge';
 
 export type SkillId =
   | 'tidal_shield'
@@ -20,7 +40,7 @@ export interface CosmeticItem {
   slot: CosmeticSlot;
   name: string;
   description: string;
-  cost: number; // Prism Shards (earned via daily challenges & daily rewards)
+  cost: number;
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
@@ -28,7 +48,13 @@ export interface CosmeticItem {
 
 export interface ZoneConfig {
   id: ZoneId;
-  key: 'sea' | 'sky' | 'cave' | 'space' | 'galactic';
+  key: ZoneBiomeKey;
+  tier: number;
+  speedScale: number;
+  enemyHpScale: number;
+  bossModelIndex: number;
+  mutatorTitle: string;
+  mutatorDesc: string;
   name: string;
   subtitle: string;
   biomeLabel: string;
@@ -63,6 +89,17 @@ export type EnemyKind =
   | 'astralturret'
   | 'stalker';
 
+export interface WeaponConfig {
+  id: WeaponId;
+  name: string;
+  subtitle: string;
+  comboNames: [string, string, string];
+  description: string;
+  color: string;
+  isSuper: boolean;
+  unlockZone: number;
+}
+
 export interface SpecialSkillConfig {
   id: SkillId;
   name: string;
@@ -85,8 +122,9 @@ export interface DailyChallenge {
 export interface PlayerProfile {
   uid: string;
   displayName: string;
-  challengeCurrency: number; // Prism Shards (only from Daily Challenges & Daily Login Rewards)
-  starCoins: number; // Starlight Coins (from combat & gems, for skill upgrades)
+  challengeCurrency: number;
+  starCoins: number;
+  lifeCredits: number;
   unlockedZone: number;
   unlockedSkills: SkillId[];
   unlockedCosmetics: string[];
@@ -103,6 +141,8 @@ export interface PlayerProfile {
   completedDailyChallenges: string[];
   highScore: number;
   infiniteLife: boolean;
+  customPhotoDataUrl: string | null;
+  usePhotoCharacter: boolean;
 }
 
 export interface LeaderboardEntry {
@@ -121,6 +161,7 @@ export interface HudSnapshot {
   score: number;
   hp: number;
   maxHp: number;
+  lives: number;
   infiniteLife: boolean;
   gravityPreset: GravityPreset;
   gravityMultiplier: number;
@@ -132,8 +173,12 @@ export interface HudSnapshot {
   equippedSkill: SkillId | null;
   skillCooldown: number;
   skillMaxCooldown: number;
+  hiddenPowerTimer: number;
+  hiddenPowerMax: number;
   difficultyMultiplier: number;
   zoneId: ZoneId;
+  zoneTier: number;
+  zoneMutator: string;
   progressPct: number;
   bossActive: boolean;
   bossName: string;
@@ -145,6 +190,7 @@ export interface HudSnapshot {
   runComboFinishers: number;
   runMidAirShifts: number;
   runShiftScore: number;
+  lifeCreditsEarned: number;
 }
 
 export interface ChallengeTarget {

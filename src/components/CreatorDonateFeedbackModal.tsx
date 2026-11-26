@@ -245,28 +245,28 @@ export const CreatorDonateFeedbackModal: React.FC<Props> = ({
                 <div className="mt-6 rounded-xl border border-slate-800 bg-slate-950/70 p-5">
                   <div className="flex items-center gap-2 text-sm font-bold text-pink-300">
                     <Heart className="h-4 w-4 fill-pink-400 text-pink-400" />
-                    A Heartfelt Thank You for Patronizing Aether Shift
+                    A Heartfelt Thank You for Patronizing Arya&apos;s Infinite Odyssey
                   </div>
                   <p className="mt-2.5 text-sm leading-relaxed text-slate-300">
-                    Thank you so much for playing and supporting <strong className="text-white">Aether Shift: Gravity Odyssey</strong>! Every jump through the Abyssal Coral Trench, every mid-air gravity flip across the Nimbus Sky Citadel, and every boss battle in Outer Space was designed by <strong className="text-white">JMC Labs</strong> to bring you joyful, creative platforming action—online or offline.
+                    Thank you so much for playing and supporting <strong className="text-white">Arya&apos;s Infinite Odyssey</strong>! Every jump through the Abyssal Coral Trench, every mid-air gravity flip across the Nimbus Sky Citadel, and every boss battle across all 100 Zones was designed by <strong className="text-white">JMC Labs</strong> to bring you joyful, creative platforming action—completely offline!
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-slate-300">
-                    Your time, enthusiasm, and feedback mean the world to our small studio and keep new worlds, weapons, and bosses coming!
+                    Your time, enthusiasm, and feedback mean the world to our small studio and keep new zones, super weapons, and bosses coming!
                   </p>
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-3 text-xs">
                   <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3.5">
-                    <div className="font-bold text-white">5 Diverse Worlds</div>
-                    <div className="mt-1 text-slate-400">Undersea, Sky Flight, Crystal Caves, Outer Space & Galactic Core</div>
+                    <div className="font-bold text-white">100 Action Zones</div>
+                    <div className="mt-1 text-slate-400">10 cosmic biomes scaling every 5 zones with 5 Super Weapons</div>
                   </div>
                   <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3.5">
                     <div className="font-bold text-white">Seamless Gravity</div>
                     <div className="mt-1 text-slate-400">Zero-G, Low-G, Heavy-G & Inverted ceiling platforming</div>
                   </div>
                   <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3.5">
-                    <div className="font-bold text-white">Cross-Platform Sync</div>
-                    <div className="mt-1 text-slate-400">Cloud saves, offline PWA play & global leaderboards</div>
+                    <div className="font-bold text-white">Offline & Mobile APK</div>
+                    <div className="mt-1 text-slate-400">Play anywhere offline with custom photo hero & local saves</div>
                   </div>
                 </div>
 
@@ -522,9 +522,7 @@ export const CreatorDonateFeedbackModal: React.FC<Props> = ({
                     Help JMC Labs Improve the Game
                   </h3>
                   <span className="text-[11px] text-slate-400">
-                    {userId && isOnline
-                      ? 'Signed in · Posts sync publicly to JMC Labs'
-                      : 'Saved locally · Sign in online to sync publicly'}
+                    Saved offline on your device for JMC Labs
                   </span>
                 </div>
 
@@ -600,7 +598,7 @@ export const CreatorDonateFeedbackModal: React.FC<Props> = ({
                 <h4 className="text-xs font-semibold text-slate-400">Recent Player Suggestions</h4>
                 {comments.length === 0 ? (
                   <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 text-center text-xs text-slate-400">
-                    No comments yet—be the first to share ideas to improve Aether Shift!
+                    No comments yet—be the first to share ideas to improve Arya&apos;s Infinite Odyssey!
                   </div>
                 ) : (
                   comments.map((c) => (
